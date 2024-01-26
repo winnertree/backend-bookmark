@@ -5,7 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 import omnivore.bookmark.dto.BookmarkInfo;
 import omnivore.bookmark.service.BookmarkService;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -32,5 +34,12 @@ public class BookmarkController {
     @GetMapping
     public List<BookmarkInfo> show (@RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
         return bookmarkService.show(jwt);
+    }
+    
+    @DeleteMapping
+    public ResponseEntity<?> release (@RequestParam String restaurantId,
+                                      @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
+        bookmarkService.release(jwt, restaurantId);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

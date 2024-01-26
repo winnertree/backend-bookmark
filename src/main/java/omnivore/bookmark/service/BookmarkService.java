@@ -43,6 +43,14 @@ public class BookmarkService {
                 .toList();
     }
 
+    @Transactional
+    public void release (String jwt, String restaurantId) {
+        String userEmail = getEmailFromPayload(parseJwtPayload(jwt));
+        User user = getUserByEmail(userEmail);
+        ObjectId obj_restaurantId = new ObjectId(restaurantId);
+        bookmarkRepository.deleteByUserIdAndRestaurantId(user.getId(), obj_restaurantId);
+    }
+
     private User getUserByEmail(String email) {
         return userRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
     }
