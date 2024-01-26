@@ -2,9 +2,11 @@ package omnivore.bookmark.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import omnivore.bookmark.dto.BookmarkInfo;
 import omnivore.bookmark.service.BookmarkService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,5 +27,10 @@ public class BookmarkController {
                                        @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
         bookmarkService.register(jwt, restaurantId);
         return ResponseEntity.ok("등록이 완료되었습니다.");
+    }
+
+    @GetMapping
+    public List<BookmarkInfo> show (@RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
+        return bookmarkService.show(jwt);
     }
 }
