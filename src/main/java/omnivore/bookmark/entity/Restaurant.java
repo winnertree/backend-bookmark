@@ -6,8 +6,8 @@ import org.springframework.data.annotation.Id;
 import omnivore.bookmark.dto.BookmarkInfo;
 import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.Field;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Document(collection = "restaurant")
@@ -22,15 +22,18 @@ public class Restaurant {
 
     private String category;
 
-    private String operation;
+    private String coodinate;
 
-    @Field(name = "user_id")
-    private String userId;
+    private List<String> operation = new ArrayList<>();
 
-    private List<Menu> menus;
+//    @Field(name = "user_id")
+//    private String userId;
+
+    private List<Menu> menus = new ArrayList<>();
 
     public BookmarkInfo toDto() {
         return BookmarkInfo.builder()
+                .id(id.toHexString())
                 .name(name)
                 .photo(photo)
                 .category(category)
