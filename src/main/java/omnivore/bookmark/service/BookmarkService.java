@@ -24,6 +24,8 @@ public class BookmarkService {
     private final BookmarkRepository bookmarkRepository;
     private final RestaurantRepository restaurantRepository;
     private final UserRepository userRepository;
+    private final TranslateService translateService;
+    private static final String SOURCE_LANGUAGE = "ko";
 
     @Transactional
     public void register (String jwt, String restaurantId) {
@@ -32,12 +34,16 @@ public class BookmarkService {
         bookmarkRepository.save(Bookmark.builder().userId(user.getId()).restaurantId(restaurantId).build());
     }
 
-    public List<BookmarkInfo> show (String jwt) {
+    public List<BookmarkInfo> show (String jwt, String targetLang) {
         String userEmail = getEmailFromPayload(parseJwtPayload(jwt));
         User user = getUserByEmail(userEmail);
         List<Bookmark> bookmarks = bookmarkRepository.findAllByUserId(user.getId());
         return bookmarks.stream()
-                .map(bookmark -> getRestaurant(bookmark.getRestaurantId()).toDto())
+                .map(bookmark -> getRestaurant(bookmark.getRestaurantId()))
+                .map(restaurant -> BookmarkInfo.builder().id(restaurant.getId())
+                        .category(getTranslation(restaurant.getCategory(), targetLang))
+                        .name(getTranslation(restaurant.getName(), targetLang))
+                        .photo(restaurant.getPhoto()).build())
                 .toList();
     }
 
@@ -46,6 +52,10 @@ public class BookmarkService {
         String userEmail = getEmailFromPayload(parseJwtPayload(jwt));
         User user = getUserByEmail(userEmail);
         bookmarkRepository.deleteByUserIdAndRestaurantId(user.getId(), restaurantId);
+    }
+
+    private String getTranslation(String originText, String targetLang) {
+        return translateService.translate(originText, SOURCE_LANGUAGE, targetLang);
     }
 
     private User getUserByEmail(String email) {
