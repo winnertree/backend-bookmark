@@ -1,14 +1,15 @@
 package omnivore.bookmark.repository;
 
 import omnivore.bookmark.entity.Bookmark;
-import org.bson.types.ObjectId;
-import org.springframework.data.mongodb.repository.MongoRepository;
+import org.socialsignin.spring.data.dynamodb.repository.EnableScan;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+@EnableScan
 @Repository
-public interface BookmarkRepository extends MongoRepository<Bookmark, ObjectId> {
-    List<Bookmark> findAllByUserId(ObjectId userId);
-    void deleteByUserIdAndRestaurantId(ObjectId userId, ObjectId restaurant);
+public interface BookmarkRepository extends CrudRepository<Bookmark, String> {
+    void deleteByUserIdAndRestaurantId(String userId, String restaurant);
+    List<Bookmark> findAllByUserId(String userId);
 }

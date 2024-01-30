@@ -9,7 +9,6 @@ import omnivore.bookmark.entity.User;
 import omnivore.bookmark.repository.BookmarkRepository;
 import omnivore.bookmark.repository.RestaurantRepository;
 import omnivore.bookmark.repository.UserRepository;
-import org.bson.types.ObjectId;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,21 +24,26 @@ public class BookmarkService {
     private final BookmarkRepository bookmarkRepository;
     private final RestaurantRepository restaurantRepository;
     private final UserRepository userRepository;
+    private final TranslateService translateService;
+    private static final String SOURCE_LANGUAGE = "ko";
 
     @Transactional
     public void register (String jwt, String restaurantId) {
         String userEmail = getEmailFromPayload(parseJwtPayload(jwt));
         User user = getUserByEmail(userEmail);
-        ObjectId obj_restaurantId = new ObjectId(restaurantId);
-        bookmarkRepository.save(Bookmark.builder().userId(user.getId()).restaurantId(obj_restaurantId).build());
+        bookmarkRepository.save(Bookmark.builder().userId(user.getId()).restaurantId(restaurantId).build());
     }
 
-    public List<BookmarkInfo> show (String jwt) {
+    public List<BookmarkInfo> show (String jwt, String targetLang) {
         String userEmail = getEmailFromPayload(parseJwtPayload(jwt));
         User user = getUserByEmail(userEmail);
         List<Bookmark> bookmarks = bookmarkRepository.findAllByUserId(user.getId());
         return bookmarks.stream()
-                .map(bookmark -> getRestaurant(bookmark.getRestaurantId()).toDto())
+                .map(bookmark -> getRestaurant(bookmark.getRestaurantId()))
+                .map(restaurant -> BookmarkInfo.builder().id(restaurant.getId())
+                        .category(getTranslation(restaurant.getCategory(), targetLang))
+                        .name(getTranslation(restaurant.getName(), targetLang))
+                        .photo(restaurant.getPhoto()).build())
                 .toList();
     }
 
@@ -47,15 +51,18 @@ public class BookmarkService {
     public void release (String jwt, String restaurantId) {
         String userEmail = getEmailFromPayload(parseJwtPayload(jwt));
         User user = getUserByEmail(userEmail);
-        ObjectId obj_restaurantId = new ObjectId(restaurantId);
-        bookmarkRepository.deleteByUserIdAndRestaurantId(user.getId(), obj_restaurantId);
+        bookmarkRepository.deleteByUserIdAndRestaurantId(user.getId(), restaurantId);
+    }
+
+    private String getTranslation(String originText, String targetLang) {
+        return translateService.translate(originText, SOURCE_LANGUAGE, targetLang);
     }
 
     private User getUserByEmail(String email) {
         return userRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
     }
 
-    private Restaurant getRestaurant(ObjectId restaurantId) {
+    private Restaurant getRestaurant(String restaurantId) {
         return restaurantRepository.findById(restaurantId).orElseThrow(() -> new IllegalArgumentException("해당 식당을 찾을 수 없습니다."));
     }
 

@@ -32,10 +32,11 @@ public class BookmarkController {
     }
 
     @GetMapping
-    public List<BookmarkInfo> show (@RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
-        return bookmarkService.show(jwt);
+    public List<BookmarkInfo> show (@RequestHeader(HttpHeaders.AUTHORIZATION) String jwt,
+                                    @RequestHeader("Language") String targetLang) {
+        return bookmarkService.show(jwt, targetLang);
     }
-    
+
     @DeleteMapping
     public ResponseEntity<?> release (@RequestParam String restaurantId,
                                       @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
