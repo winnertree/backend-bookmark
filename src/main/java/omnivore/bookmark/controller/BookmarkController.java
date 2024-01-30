@@ -35,7 +35,7 @@ public class BookmarkController {
     public List<BookmarkInfo> show (@RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
         return bookmarkService.show(jwt);
     }
-    
+
     @DeleteMapping
     public ResponseEntity<?> release (@RequestParam String restaurantId,
                                       @RequestHeader(HttpHeaders.AUTHORIZATION) String jwt) {
