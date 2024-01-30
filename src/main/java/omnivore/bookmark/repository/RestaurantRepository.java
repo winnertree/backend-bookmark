@@ -1,10 +1,11 @@
 package omnivore.bookmark.repository;
 
 import omnivore.bookmark.entity.Restaurant;
-import org.bson.types.ObjectId;
-import org.springframework.data.mongodb.repository.MongoRepository;
+import org.socialsignin.spring.data.dynamodb.repository.EnableScan;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
+@EnableScan
 @Repository
-public interface RestaurantRepository extends MongoRepository<Restaurant, ObjectId> {
+public interface RestaurantRepository extends CrudRepository<Restaurant, String> {
 }
