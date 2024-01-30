@@ -44,7 +44,6 @@ public class Restaurant {
                 .name(name)
                 .photo(photo)
                 .category(category)
-                .operation(operation)
                 .build();
     }
 }
