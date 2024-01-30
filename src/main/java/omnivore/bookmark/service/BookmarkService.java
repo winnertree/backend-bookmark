@@ -9,7 +9,6 @@ import omnivore.bookmark.entity.User;
 import omnivore.bookmark.repository.BookmarkRepository;
 import omnivore.bookmark.repository.RestaurantRepository;
 import omnivore.bookmark.repository.UserRepository;
-import org.bson.types.ObjectId;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,8 +29,7 @@ public class BookmarkService {
     public void register (String jwt, String restaurantId) {
         String userEmail = getEmailFromPayload(parseJwtPayload(jwt));
         User user = getUserByEmail(userEmail);
-        ObjectId obj_restaurantId = new ObjectId(restaurantId);
-        bookmarkRepository.save(Bookmark.builder().userId(user.getId()).restaurantId(obj_restaurantId).build());
+        bookmarkRepository.save(Bookmark.builder().userId(user.getId()).restaurantId(restaurantId).build());
     }
 
     public List<BookmarkInfo> show (String jwt) {
@@ -47,15 +45,14 @@ public class BookmarkService {
     public void release (String jwt, String restaurantId) {
         String userEmail = getEmailFromPayload(parseJwtPayload(jwt));
         User user = getUserByEmail(userEmail);
-        ObjectId obj_restaurantId = new ObjectId(restaurantId);
-        bookmarkRepository.deleteByUserIdAndRestaurantId(user.getId(), obj_restaurantId);
+        bookmarkRepository.deleteByUserIdAndRestaurantId(user.getId(), restaurantId);
     }
 
     private User getUserByEmail(String email) {
         return userRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
     }
 
-    private Restaurant getRestaurant(ObjectId restaurantId) {
+    private Restaurant getRestaurant(String restaurantId) {
         return restaurantRepository.findById(restaurantId).orElseThrow(() -> new IllegalArgumentException("해당 식당을 찾을 수 없습니다."));
     }
 
