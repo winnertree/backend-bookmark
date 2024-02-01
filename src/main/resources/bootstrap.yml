@@ -1,0 +1,6 @@
+aws:
+  secretsmanager:
+    enabled: true
+    region: ap-northeast-2
+    name: aws
+    default-context: application
