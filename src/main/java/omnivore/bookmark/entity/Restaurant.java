@@ -8,7 +8,6 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import omnivore.bookmark.dto.BookmarkInfo;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,13 +36,4 @@ public class Restaurant {
 
     @DynamoDBAttribute
     private List<Map<String, String>> operation = new ArrayList<>();
-
-    public BookmarkInfo toDto() {
-        return BookmarkInfo.builder()
-                .id(id)
-                .name(name)
-                .photo(photo)
-                .category(category)
-                .build();
-    }
 }
