@@ -61,7 +61,7 @@ jobs:
       - name: Docker image Push
         id: push-image
         run: |
-          docker push jinsung:1.0
+          docker push jinsung:1.0 420615923610.dkr.ecr.ap-northeast-2.amazonaws.com/test-spring-build
 #  cd: 
 #    needs: [ci]
 #    runs-on: ubuntu-latest
