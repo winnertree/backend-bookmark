@@ -1,0 +1,98 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - '.gitignore'
+      - '.dockerignore'
+#      - 'README.md'
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    outputs:
+      IMAGE_TAG: ${{ steps.set-var.outputs.IMAGE_TAG }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Set var
+        id: set-var
+        run: |
+          echo ::set-output name=ECR_REGISTRY::${{ steps.login-ecr.outputs.registry }}
+          echo ::set-output name=ECR_REPOSITORY::demo
+          echo ::set-output name=IMAGE_TAG::$(cat VERSION)
+      
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 11
+        
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v3
+    
+      - name: Execute Gradle build
+        run: ./gradlew build    
+
+      - name: Docker image Build
+        id: build-image
+        run: |
+          docker build \
+            -f Dockerfile \
+            -t ${{ steps.set-var.outputs.ECR_REGISTRY }}/${{ steps.set-var.outputs.ECR_REPOSITORY }}:${{ steps.set-var.outputs.IMAGE_TAG }} .
+
+      - name: Docker image Push
+        id: push-image
+        run: |
+          docker push ${{ steps.set-var.outputs.ECR_REGISTRY }}/${{ steps.set-var.outputs.ECR_REPOSITORY }}:${{ steps.set-var.outputs.IMAGE_TAG }}
+#  cd:
+#    needs: [ci]
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Checkout Target Repository
+#        uses: actions/checkout@v2
+#        with:
+#          repository: iamchoiz/k8-cicd-argocd
+#          path: deploy-k8s
+#
+#      - name: Replace image tag in helm values (LOCAL)
+#        uses: mikefarah/yq@master
+#        env:
+#          IMAGE_TAG: ${{needs.ci.outputs.IMAGE_TAG}}
+#        with:
+#          cmd: yq eval -i '.image.tag = env(IMAGE_TAG)' 'deploy-k8s/demo/values.yaml'
+#
+#      - name: Replace image tag in helm values (EKS)
+#        uses: mikefarah/yq@master
+#        env:
+#          IMAGE_TAG: ${{needs.ci.outputs.IMAGE_TAG}}
+#        with:
+#          cmd: yq eval -i '.image.tag = env(IMAGE_TAG)' 'deploy-k8s/demo/values-eks.yaml'
+#
+#      - name: Push helm repo
+#        env:
+#          token: ${{ secrets.GH_TOKEN }}
+#          IMAGE_TAG: ${{needs.ci.outputs.IMAGE_TAG}}
+#        run: |
+#          cd deploy-k8s
+#          git config --global user.email "dachan1207@gmail.com"
+#          git config --global user.name "iamchoiz"
+#
+#          git add demo/values.yaml demo/values-eks.yaml;
+#          git commit --message "Update demo image tag to $IMAGE_TAG";
+#          git config -l | grep 'http\..*\.extraheader' | cut -d= -f1 | xargs -L1 git config --unset-all
+#          git push --prune https://token:$token@github.com/iamchoiz/k8-cicd-argocd.git
