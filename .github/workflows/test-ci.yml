@@ -56,7 +56,8 @@ jobs:
         run: |
           docker build \
             -f Dockerfile \
-            -t ${{ steps.set-var.outputs.ECR_REGISTRY }}/${{ steps.set-var.outputs.ECR_REPOSITORY }}:${{ steps.set-var.outputs.IMAGE_TAG }} .
+            -t jinsung:1.0 
+            # ${{ steps.set-var.outputs.ECR_REGISTRY }}/${{ steps.set-var.outputs.ECR_REPOSITORY }}:${{ steps.set-var.outputs.IMAGE_TAG }} .
 
       - name: Docker image Push
         id: push-image
