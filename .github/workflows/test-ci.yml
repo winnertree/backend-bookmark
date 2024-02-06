@@ -6,20 +6,24 @@ on:
     paths-ignore:
       - '.gitignore'
       - '.dockerignore'
-#      - 'README.md'
+      - 'deployment/**' #k8s의 이미지태그가 변경됐을땐 트리거되지 않도록 deployment폴더의 모든 파일은 무시한다.
+      - 'README.md'
 
 jobs:
   ci:
     runs-on: ubuntu-latest
     outputs:
       IMAGE_TAG: ${{ steps.set-var.outputs.IMAGE_TAG }}
+
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4 # uses=액션들. 이미 만들어진 액션을 검색해서 가져다 쓰면된다.
         with:
-          fetch-depth: 1
+          fetch-depth: 1          #가장 최근 commit한 히스토리만 가져온다.
+          ref: main  # branch
+          token: ${{ secrets.GH_TOKEN }}
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -27,14 +31,20 @@ jobs:
 
       - name: Login to Amazon ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
+        uses: aws-actions/amazon-ecr-login@v2
 
       - name: Set var
         id: set-var
         run: |
-          echo ::set-output name=ECR_REGISTRY::${{ steps.login-ecr.outputs.registry }}
-          echo ::set-output name=ECR_REPOSITORY::test-spring-build
-          echo ::set-output name=IMAGE_TAG::${{ github.run_number }}
+          echo "ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}" >> $GITHUB_ENV
+          echo "ECR_REPOSITORY=test-spring-build" >> $GITHUB_ENV
+          echo "IMAGE_TAG=${{ github.run_number }}" >> $GITHUB_ENV
+          echo "GIT_EMAIL=winnertree@naver.com" >> $GITHUB_ENV
+          echo "GIT_NAME=winnertree" >> $GITHUB_ENV
+
+#          echo ::set-output name=ECR_REGISTRY::${{ steps.login-ecr.outputs.registry }}
+#          echo ::set-output name=ECR_REPOSITORY::test-spring-build
+#          echo ::set-output name=IMAGE_TAG::${{ github.run_number }}
       
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -54,14 +64,12 @@ jobs:
       - name: Docker image Build
         id: build-image
         run: |
-          docker build \
-            -f Dockerfile \
-            -t ${{ steps.set-var.outputs.ECR_REGISTRY }}/${{ steps.set-var.outputs.ECR_REPOSITORY }}:${{ steps.set-var.outputs.IMAGE_TAG}} .
+          docker build -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }} .
 
       - name: Docker image Push
         id: push-image
         run: |
-          docker push ${{ steps.set-var.outputs.ECR_REGISTRY }}/${{ steps.set-var.outputs.ECR_REPOSITORY }}:${{ steps.set-var.outputs.IMAGE_TAG }}
+          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
       
       - name: Checkout Other Repository
         uses: actions/checkout@v2
@@ -72,13 +80,13 @@ jobs:
       - name: k8s manifest update
         run: |
           sed -i "s@ \
-          image: ${{ steps.set-var.outputs.ECR_REGISTRY }}/${{ steps.set-var.outputs.ECR_REPOSITORY }}:.*@ \
-          image: ${{ steps.set-var.outputs.ECR_REGISTRY }}/${{ steps.set-var.outputs.ECR_REPOSITORY }}:${{ steps.set-var.outputs.IMAGE_TAG }}@g" deployment.yml 
+          image: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:.*@ \
+          image: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}@g" deployment/deployment.yml  
 
       - name: Commit and Push
         run: |
-          git config user.email "winnertree@naver.com"
-          git config user.name "winnertree"
-          git add deployment.yml
+          git config user.email ${{ env.GIT_EMAIL }}
+          git config user.name ${{ env.GIT_NAME }}
+          git add deployment/deployment.yml
           git commit -m "Update image tag"
           git push origin main
