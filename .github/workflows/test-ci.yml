@@ -71,17 +71,17 @@ jobs:
         run: |
           docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
       
-      - name: Checkout Other Repository
-        uses: actions/checkout@v2
-        with:
-          repository: winnertree/eks-deploy
-          ref: main  # branch
-          token: ${{ secrets.GH_TOKEN }}
+#      - name: Checkout Other Repository
+#        uses: actions/checkout@v2
+#        with:
+#          repository: winnertree/eks-deploy
+#          ref: main  # branch
+#          token: ${{ secrets.GH_TOKEN }}
       - name: k8s manifest update
         run: |
           sed -i "s@ \
           image: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:.*@ \
-          image: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}@g" ./deployment/deployment.yml  
+          image: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}@g" deployment/deployment.yml  
 
       - name: Commit and Push
         run: |
