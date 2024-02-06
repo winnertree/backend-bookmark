@@ -73,7 +73,7 @@ jobs:
         run: |
           sed -i "s@ \
           image: ${{ steps.set-var.outputs.ECR_REGISTRY }}/${{ steps.set-var.outputs.ECR_REPOSITORY }}:.*@ \
-          image: ${{ steps.set-var.outputs.ECR_REGISTRY }}/${{ steps.set-var.outputs.ECR_REPOSITORY }}:${{ steps.set-var.outputs.IMAGE_TAG }}@g" deployment.yml
+          image: ${{ steps.set-var.outputs.ECR_REGISTRY }}/${{ steps.set-var.outputs.ECR_REPOSITORY }}:${{ steps.set-var.outputs.IMAGE_TAG }}@g" deployment.txt
       - name: Commit and Push
         run: |
           git config user.email "winnertree@naver.com"
