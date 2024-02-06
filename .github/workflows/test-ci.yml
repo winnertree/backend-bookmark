@@ -73,49 +73,12 @@ jobs:
         run: |
           sed -i "s@ \
           image: ${{ steps.set-var.outputs.ECR_REGISTRY }}/${{ steps.set-var.outputs.ECR_REPOSITORY }}:.*@ \
-          image: ${{ steps.set-var.outputs.ECR_REGISTRY }}/${{ steps.set-var.outputs.ECR_REPOSITORY }}:${{ steps.set-var.outputs.IMAGE_TAG }}@g" deployment.txt 
-          cat deployment.txt
-# test 용으로 txt 파일 수정하게 세팅했음
+          image: ${{ steps.set-var.outputs.ECR_REGISTRY }}/${{ steps.set-var.outputs.ECR_REPOSITORY }}:${{ steps.set-var.outputs.IMAGE_TAG }}@g" deployment.yml 
+
       - name: Commit and Push
         run: |
           git config user.email "winnertree@naver.com"
           git config user.name "winnertree"
-          git add deployment.txt
+          git add deployment.yml
           git commit -m "Update image tag"
           git push origin main
-#  cd: 
-#    needs: [ci]
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: Checkout Target Repository
-#        uses: actions/checkout@v2
-#        with:
-#          repository: iamchoiz/k8-cicd-argocd
-#          path: deploy-k8s
-#
-#      - name: Replace image tag in helm values (LOCAL)
-#        uses: mikefarah/yq@master
-#          IMAGE_TAG: ${{needs.ci.outputs.IMAGE_TAG}}
-#        with:
-#          cmd: yq eval -i '.image.tag = env(IMAGE_TAG)' 'deploy-k8s/demo/values.yaml'
-#
-#      - name: Replace image tag in helm values (EKS)
-#        uses: mikefarah/yq@master
-#        env:
-#          IMAGE_TAG: ${{needs.ci.outputs.IMAGE_TAG}}
-#        with:
-#          cmd: yq eval -i '.image.tag = env(IMAGE_TAG)' 'deploy-k8s/demo/values-eks.yaml'
-#
-#      - name: Push helm repo
-#        env:
-#          token: ${{ secrets.GH_TOKEN }}
-#          IMAGE_TAG: ${{needs.ci.outputs.IMAGE_TAG}}
-#        run: |
-#          cd deploy-k8s
-#          git config --global user.email "dachan1207@gmail.com"
-#          git config --global user.name "iamchoiz"
-#
-#          git add demo/values.yaml demo/values-eks.yaml;
-#          git commit --message "Update demo image tag to $IMAGE_TAG";
-#          git config -l | grep 'http\..*\.extraheader' | cut -d= -f1 | xargs -L1 git config --unset-all
-#          git push --prune https://token:$token@github.com/iamchoiz/k8-cicd-argocd.git
