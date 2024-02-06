@@ -73,12 +73,13 @@ jobs:
         run: |
           sed -i "s@ \
           image: ${{ steps.set-var.outputs.ECR_REGISTRY }}/${{ steps.set-var.outputs.ECR_REPOSITORY }}:.*@ \
-          image: ${{ steps.set-var.outputs.ECR_REGISTRY }}/${{ steps.set-var.outputs.ECR_REPOSITORY }}:${{ steps.set-var.outputs.IMAGE_TAG }}@g" deployment.txt
+          image: ${{ steps.set-var.outputs.ECR_REGISTRY }}/${{ steps.set-var.outputs.ECR_REPOSITORY }}:${{ steps.set-var.outputs.IMAGE_TAG }}@g" deployment.txt 
+# test 용으로 txt 파일 수정하게 세팅했음
       - name: Commit and Push
         run: |
           git config user.email "winnertree@naver.com"
           git config user.name "winnertree"
-          git add deployment.text
+          git add deployment.txt
           git commit -m "Update image tag"
           git push origin main
 #  cd: 
